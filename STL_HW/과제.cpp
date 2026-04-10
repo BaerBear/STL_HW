@@ -25,7 +25,7 @@ public:
 
 	void print() const {
 		std::print("이름: {:15}, 아이디: {}, 점수: {}, 자원수: {}\n", name, id, score, num);
-		std::print("저장된 글자: {}\n", p.get());
+		std::print("저장된 글자: {}\n\n", p.get());
 	}
 
 private:
@@ -61,5 +61,10 @@ int main() {
 	}
 
 	(players.end() - 1)->print();
+	std::cout << "-----------------------------\n";
+
+	for (const Player& p : players | std::views::take(100)) {
+		p.print();
+	}
 
 }
