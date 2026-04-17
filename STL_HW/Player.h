@@ -18,7 +18,7 @@ public:
 	int getScore() const;
 	size_t getId() const;
 	size_t getNum() const;
-	std::unique_ptr<char[]>& getP();
+	char* getP() const;
 
 	friend std::ostream& operator<<(std::ostream& os, const Player& pl);
 

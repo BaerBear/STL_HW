@@ -52,6 +52,7 @@ int main() {
 	// - 어떻게 찾고 계산하였는지 보고서에 설명하라
 	// 병렬, 순차 각각 시간측정. par과 par_unseq 둘다 해본 결과 par_unseq가 더 빠르게 나왔다. (par_unseq는 병렬과 벡터화 모두 지원하기 때문인듯)
 	// 근데 par보다 순차가 더 빠르게 나오는 경우도 있었다. 이건 왜일까
+	// 단순하게 탐색하는 작업이라 그런가?
 	auto MaxScore = std::max_element(std::execution::par, players.begin(), players.end(),
 		[](const Player& a, const Player& b) {
 			return a.getScore() < b.getScore();
@@ -114,11 +115,15 @@ int main() {
 	// 병렬로 해도 상관이 없는게 각각의 Player 객체의 p가 가리키는 메모리는 서로 독립적이기 때문에 병렬로 정렬해도 문제가 없다. 판단
 	//
 
+	std::atomic<int> count{ 0 };
 	std::cout << "[문제4] Player의 멤버 p가 가리키는 메모리에 저장된 char 정렬 / '0'부터 '9'까지 모든 숫자가 있는 Player 찾기" << std::endl;
-	std::for_each(std::execution::par, players.begin(), players.end(), [](Player& p) {
-		std::sort(p.getP().get(), p.getP().get() + p.getNum());
-		});
-
+	std::for_each(std::execution::par, players.begin(), players.end(), [&count](Player& p) {
+		std::sort(p.getP(), p.getP() + p.getNum());
+		if (std::ranges::includes(p.getP(), p.getP() + p.getNum(), "0123456789", "0123456789" + 10)) {
+			count++;
+		}
+	});
+	std::cout << "'0'부터 '9'까지 모든 숫자가 있는 Player 수: " << count.load() << std::endl;
 }
 
 void timerStart(std::string s) {
