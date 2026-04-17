@@ -82,11 +82,13 @@ int main() {
 	// - push_back은 객체를 먼저 생성한 후 복사 또는 이동하여 컨테이너에 추가. 임시객체 o
 	// 하지만 지금은 포인터를 저장하는 거라서 emplace_back과 push_back의 차이가 크지 않을 것 같다. 어차피 포인터는 복사할 때 큰 비용이 들지 않으니까
 
-	/*std::cout << "[문제3] id가 같은 Player 기록 후 몇 개인지 출력하기" << std::endl;
+	std::cout << "[문제3] id가 같은 Player 기록 후 몇 개인지 출력하기" << std::endl;
+	timerStart("id 같은넘들 찾기");
 	std::map<size_t, std::vector<Player*>> idMap;
 	std::for_each(players.begin(), players.end(), [&idMap](Player& p) {
 		idMap[p.getId()].push_back(&p);
 		});
+	timerEnd();
 
 	std::cout << "id가 같은 Player 객체 기록하기" << std::endl;
 	std::ofstream out("같은아이디.txt");
@@ -101,9 +103,8 @@ int main() {
 		});
 	out.close();
 	std::cout << "id가 같은 Player 객체 기록 완료" << std::endl;
-
 	std::cout << "id가 같은 Player 객체 수: " << sameIdCount << std::endl;
-	std::cout << "--------------------------------------------------" << std::endl;*/
+	std::cout << "--------------------------------------------------" << std::endl;
 
 
 	// [문제4] Player의 멤버 p가 가리키는 메모리에는 파일에서 읽은 num개의 char가 저장되어 있어야 한다.
@@ -120,16 +121,20 @@ int main() {
 	// 안정적으로 밖에서 한번 더 std::for_each로 확인하는 방법도 있지만, 
 	// 그렇게 하면 두번 반복문을 돌게 되어서 시간이 더 오래 걸릴 것 같아서 원자적으로 증가시키는 방법을 선택하였다.
 	// atomic으로 진행하는게 실제로 0.4~0.5초 정도 더 빠르게 측정되었다.
+	// 하지만 계수정렬을 사용할 조건이 충분히 갖춰져 있기 때문에, 
+	// 계수정렬을 구현하여 정렬하는 방법도 고려해볼 수 있을 것 같다. 지금은 그냥 std::sort로 정렬하였음.
 
 	std::atomic<int> count{ 0 };
 	std::cout << "[문제4] Player의 멤버 p가 가리키는 메모리에 저장된 char 정렬 / '0'부터 '9'까지 모든 숫자가 있는 Player 찾기" << std::endl;
 	std::for_each(std::execution::par, players.begin(), players.end(), [&count](Player& p) {
-		std::sort(p.getP(), p.getP() + p.getNum());
+		std::sort(p.getP(), p.getP() + p.getNum());		// 추후에 계수 정렬을 구현해보는 것도 좋을 것 같다. 지금은 그냥 std::sort로 정렬하였음.
 		if (std::ranges::includes(p.getP(), p.getP() + p.getNum(), "0123456789", "0123456789" + 10)) {
 			count++;
 		}
 		});
 	std::cout << "'0'부터 '9'까지 모든 숫자가 있는 Player 수: " << count.load() << std::endl;
+
+	
 }
 
 void timerStart(std::string s) {
