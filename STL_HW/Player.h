@@ -14,9 +14,11 @@ public:
 	void print() const;
 	void read(std::istream& is);
 
+	std::string getName() const;
 	int getScore() const;
 	size_t getId() const;
-	std::string getName() const;
+	size_t getNum() const;
+	std::unique_ptr<char[]>& getP();
 
 	friend std::ostream& operator<<(std::ostream& os, const Player& pl);
 

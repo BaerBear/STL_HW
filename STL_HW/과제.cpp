@@ -39,6 +39,7 @@ int main() {
 
 	// [문제1] 파일에 저장한 모든 Player 정보를 읽어 컨테이너에 저장하라.
 	// 제일 마지막 Player의 정보를 화면에 출력하라.
+	// - 어떤 방식으로 읽어 메모리에 저장했는지 보고서에 설명하라.
 	std::for_each(players.begin(), players.end(), [&in](Player& p) {
 		p.read(in);
 		});
@@ -48,9 +49,10 @@ int main() {
 
 	// [문제2] 점수가 가장 큰 Player를 찾아 화면에 출력하라. (동점 모두 출력)
 	// Player의 평균 점수를 계산하여 화면에 출력하라.
-	// 병렬, 순회 각각 시간측정. par과 par_unseq 둘다 해본 결과 par_unseq가 더 빠르게 나왔다. (par_unseq는 병렬과 벡터화 모두 지원하기 때문인듯)
-	// 근데 par보다 순회가 더 빠르게 나오는 경우도 있었다. 이건 왜일까
-	auto MaxScore = std::max_element(std::execution::par_unseq, players.begin(), players.end(),
+	// - 어떻게 찾고 계산하였는지 보고서에 설명하라
+	// 병렬, 순차 각각 시간측정. par과 par_unseq 둘다 해본 결과 par_unseq가 더 빠르게 나왔다. (par_unseq는 병렬과 벡터화 모두 지원하기 때문인듯)
+	// 근데 par보다 순차가 더 빠르게 나오는 경우도 있었다. 이건 왜일까
+	auto MaxScore = std::max_element(std::execution::par, players.begin(), players.end(),
 		[](const Player& a, const Player& b) {
 			return a.getScore() < b.getScore();
 		});
@@ -72,13 +74,14 @@ int main() {
 	// [문제3] id가 서로 같은 객체를 찾아 "같은아이디.txt"에 기록하라.
 	// id가 같은 객체는 모두 몇 개인지 화면에 출력하라.
 	// 파일에는 id가 같은 Player 객체의 이름과 아이디를 한 줄 씩 기록한다.
+	// - 어떻게 같은 id를 찾았는지 보고서에 설명하라.
 
 	// emplace_back과 push_back의 차이 
 	// - emplace_back은 내부에서 객체를 바로 생성. 임시객체 x
 	// - push_back은 객체를 먼저 생성한 후 복사 또는 이동하여 컨테이너에 추가. 임시객체 o
 	// 하지만 지금은 포인터를 저장하는 거라서 emplace_back과 push_back의 차이가 크지 않을 것 같다. 어차피 포인터는 복사할 때 큰 비용이 들지 않으니까
 
-	std::cout << "[문제3] id가 같은 Player 기록 후 몇 개인지 출력하기" << std::endl;
+	/*std::cout << "[문제3] id가 같은 Player 기록 후 몇 개인지 출력하기" << std::endl;
 	std::map<size_t, std::vector<Player*>> idMap;
 	std::for_each(players.begin(), players.end(), [&idMap](Player& p) {
 		idMap[p.getId()].push_back(&p);
@@ -99,7 +102,22 @@ int main() {
 	std::cout << "id가 같은 Player 객체 기록 완료" << std::endl;
 
 	std::cout << "id가 같은 Player 객체 수: " << sameIdCount << std::endl;
-	std::cout << "--------------------------------------------------" << std::endl;
+	std::cout << "--------------------------------------------------" << std::endl;*/
+
+
+	// [문제4] Player의 멤버 p가 가리키는 메모리에는 파일에서 읽은 num개의 char가 저장되어 있어야 한다.
+	// 메모리에 저장된 char를 오름차순으로 정렬하라.
+	// '0' 부터 '9' 까지 모든 숫자가 있는 Player를 찾아 모두 몇 객체인지 출력하라.
+	// - 어떻게 찾았는지 보고서에 설명하라.
+
+	// 병렬과 순차 시간측정 -> 병렬이 10배가량 빠르게 측정되었음.
+	// 병렬로 해도 상관이 없는게 각각의 Player 객체의 p가 가리키는 메모리는 서로 독립적이기 때문에 병렬로 정렬해도 문제가 없다. 판단
+	//
+
+	std::cout << "[문제4] Player의 멤버 p가 가리키는 메모리에 저장된 char 정렬 / '0'부터 '9'까지 모든 숫자가 있는 Player 찾기" << std::endl;
+	std::for_each(std::execution::par, players.begin(), players.end(), [](Player& p) {
+		std::sort(p.getP().get(), p.getP().get() + p.getNum());
+		});
 
 }
 

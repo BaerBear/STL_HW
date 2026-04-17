@@ -43,11 +43,11 @@ void Player::read(std::istream& is)
 	p[num] = '\0';
 }
 
-int Player::getScore() const { return score; }
-
-size_t Player::getId() const { return id; }
-
 std::string Player::getName() const { return name; }
+int Player::getScore() const { return score; }
+size_t Player::getId() const { return id; }
+size_t Player::getNum() const { return num; }
+std::unique_ptr<char[]>& Player::getP() { return p; }
 
 std::ostream& operator<<(std::ostream& os, const Player& pl) 
 {
