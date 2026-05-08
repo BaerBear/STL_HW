@@ -11,8 +11,11 @@ public:
 	Player(Player&&) noexcept;
 	Player& operator=(Player&&) noexcept;
 
-	void print() const;
 	void read(std::istream& is);
+
+	void PrintById();
+	void PrintByName();
+	void PrintByScore();
 
 	std::string getName() const;
 	int getScore() const;
