@@ -4,11 +4,11 @@
 #include <fstream>
 #include <array>
 #include <ranges>
-#include <print>
 #include <numeric>
 #include <algorithm>
 #include <execution>
 #include <chrono>
+#include <unordered_map>
 #include <map>
 #include "Player.h"
 
@@ -37,45 +37,58 @@ void printPlayerShort(const Player& p);
 int main() {
 	std::ifstream in("2026 STL 과제 파일 - 2022180011", std::ios::binary);
 	if (not in) {
-		std::cerr << "파일을 열 수 없습니다." << std::endl;
+		std::cout << "파일을 열 수 없습니다." << std::endl;
 		return 1;
 	}
 
 	// [문제1] 파일에 저장한 모든 Player 정보를 읽어 컨테이너에 저장하라.
 	// 제일 마지막 Player의 정보를 화면에 출력하라.
 	// - 어떤 방식으로 읽어 메모리에 저장했는지 보고서에 설명하라.
-	std::for_each(players.begin(), players.end(), [&in](Player& p) {
+	for (Player& p : players) {
 		p.read(in);
-		});
-	std::println("[문제1] 마지막 Player 출력");
+	}
+	std::cout << "[문제1] 마지막 Player 출력\n";
 	std::cout << players.back();
-	std::println("--------------------------------------------------");
+	std::cout << "--------------------------------------------------\n";
 
-	/*
+
 	// [문제2] 점수가 가장 큰 Player를 찾아 화면에 출력하라. (동점 모두 출력)
 	// Player의 평균 점수를 계산하여 화면에 출력하라.
 	// - 어떻게 찾고 계산하였는지 보고서에 설명하라
-	// 병렬, 순차 각각 시간측정. par과 par_unseq 둘다 해본 결과 par_unseq가 더 빠르게 나왔다. (par_unseq는 병렬과 벡터화 모두 지원하기 때문인듯)
-	// 근데 par보다 순차가 더 빠르게 나오는 경우도 있었다. 이건 왜일까
-	// 단순하게 탐색하는 작업이라 그런가?
 	auto MaxScore = std::max_element(std::execution::par, players.begin(), players.end(),
 		[](const Player& a, const Player& b) {
 			return a.getScore() < b.getScore();
 		});
 
-	std::println("[문제2] 점수가 가장 큰 Player 출력 / 점수 : {}", MaxScore->getScore());
-	std::for_each(std::execution::par, players.begin(), players.end(), [MaxScore](const Player& p) {
-		if (p.getScore() == MaxScore->getScore()) {
-			p.print();
-		}
-		});
+	std::cout << "[문제2] 점수가 가장 큰 Player 출력 / 점수 : " << MaxScore->getScore() << '\n';
+
+	int maxScore = MaxScore->getScore();
+	for (const Player& p : players | std::views::filter([maxScore](const Player& p) {
+		return p.getScore() == maxScore;
+		})) {
+		std::cout << p;
+	}
 
 	long long sum = std::accumulate(players.begin(), players.end(), 0LL,
 		[](long long acc, const Player& p) {
 			return acc + p.getScore();
 		});
-	std::println("[문제2] 평균 점수: {}", sum / players.size());
-	std::println("--------------------------------------------------");
+
+	/*
+	long long sum = 0;
+	int maxScore = MaxScore->getScore();
+
+	for (const Player& p : players) {
+		sum += p.getScore();  // 평균 계산용
+
+		if (p.getScore() == maxScore) {
+			std::cout << p;   // 최댓값 player 출력
+		}
+	}
+	*/
+
+	std::cout << "[문제2] 평균 점수: " << sum / players.size() << '\n';
+	std::cout << "--------------------------------------------------\n";
 
 	// [문제3] id가 서로 같은 객체를 찾아 "같은아이디.txt"에 기록하라.
 	// id가 같은 객체는 모두 몇 개인지 화면에 출력하라.
@@ -87,27 +100,82 @@ int main() {
 	// - push_back은 객체를 먼저 생성한 후 복사 또는 이동하여 컨테이너에 추가. 임시객체 o
 	// 하지만 지금은 포인터를 저장하는 거라서 emplace_back과 push_back의 차이가 크지 않을 것 같다. 어차피 포인터는 복사할 때 큰 비용이 들지 않으니까
 
-	std::println("[문제3] id가 같은 Player 기록 후 몇 개인지 출력하기");
-	std::map<size_t, std::vector<Player*>> idMap;
-	std::for_each(players.begin(), players.end(), [&idMap](Player& p) {
-		idMap[p.getId()].push_back(&p);
-		});
+	std::cout << "[문제3] id가 같은 Player 기록 후 몇 개인지 출력하기\n";
 
-	std::println("id가 같은 Player 객체 찾기 완료");
+	/*
+	std::map<size_t, std::vector<Player*>> idMap;
+	for (Player& p : players) {
+		idMap[p.getId()].push_back(&p);
+	}
+
+	std::cout << "id가 같은 Player 객체 찾기 완료\n";
 	std::ofstream out("같은아이디.txt");
 	size_t sameIdCount = 0;
-	std::for_each(idMap.begin(), idMap.end(), [&out, &sameIdCount](const auto& pair) {
-		if (pair.second.size() > 1) {
-			for (const auto* p : pair.second) {
+	for (const auto& [id, vec] : idMap | std::views::filter([](const auto& pair) {
+		return pair.second.size() > 1;
+		})) {
+		for (const Player* p : vec) {
+			out << "이름: " << p->getName() << ", 아이디: " << p->getId() << '\n';
+			sameIdCount++;
+		}
+	}
+	*/
+
+	//timerStart("unordered_map");
+	std::unordered_map<size_t, std::vector<Player*>> idMap;
+	idMap.reserve(players.size());
+
+	for (Player& p : players) {
+		idMap[p.getId()].push_back(&p);
+	}
+
+	//std::cout << "id가 같은 Player 객체 찾기 완료\n";
+	std::ofstream out("같은아이디.txt");
+	size_t sameIdCount = 0;
+
+	for (const auto& [id, vec] : idMap) {
+		if (vec.size() > 1) {
+			for (const Player* p : vec) {
 				out << "이름: " << p->getName() << ", 아이디: " << p->getId() << '\n';
 				sameIdCount++;
 			}
 		}
-		});
-	out.close();
-	std::println("id가 같은 Player 객체 기록 완료");
-	std::println("id가 같은 Player 객체 수: {}개", sameIdCount);
-	std::println("--------------------------------------------------");
+	}
+	//timerEnd();
+
+	/*
+	timerStart("인접비교");
+	// id 기준 인덱스 정렬
+	std::iota(IdIndex.begin(), IdIndex.end(), 0);
+	std::sort(std::execution::par, IdIndex.begin(), IdIndex.end(),
+		[](size_t a, size_t b) { return players[a].getId() < players[b].getId(); });
+
+	std::ofstream out("같은아이디.txt");
+	size_t sameIdCount = 0;
+
+	for (size_t i = 0; i < IdIndex.size(); ) {
+		size_t j = i + 1;
+		while (j < IdIndex.size() &&
+			players[IdIndex[j]].getId() == players[IdIndex[i]].getId()) {
+			++j;
+		}
+
+		if (j - i >= 2) {
+			for (size_t k = i; k < j; ++k) {
+				const Player& p = players[IdIndex[k]];
+				out << "이름: " << p.getName() << ", 아이디: " << p.getId() << '\n';
+				sameIdCount++;
+			}
+		}
+
+		i = j;  // 다음 그룹으로 점프
+	}
+	timerEnd();
+	*/
+
+	std::cout << "id가 같은 Player 객체 기록 완료\n";
+	std::cout << "id가 같은 Player 객체 수: " << sameIdCount << "개\n";
+	std::cout << "--------------------------------------------------\n";
 
 
 	// [문제4] Player의 멤버 p가 가리키는 메모리에는 파일에서 읽은 num개의 char가 저장되어 있어야 한다.
@@ -127,26 +195,54 @@ int main() {
 	// 하지만 계수정렬을 사용할 조건이 충분히 갖춰져 있기 때문에,
 	// 계수정렬을 구현하여 정렬하는 방법도 고려해볼 수 있을 것 같다. 지금은 그냥 std::sort로 정렬하였음.
 	//
-
-	std::atomic<int> count{ 0 };
-	std::println("[문제4] Player의 멤버 p가 가리키는 메모리에 저장된 char 정렬 / '0'부터 '9'까지 모든 숫자가 있는 Player 찾기");
+	
+	// 병렬처리 약 1.6초. 순차처리는 약 15초로 측정.
+	std::cout << "[문제4] Player의 멤버 p가 가리키는 메모리에 저장된 char 정렬 / '0'부터 '9'까지 모든 숫자가 있는 Player 찾기\n";
+	
+	/*
+	timerStart("std::sort + includes");
 	std::for_each(std::execution::par, players.begin(), players.end(), [&count](Player& p) {
-		std::sort(p.getP(), p.getP() + p.getNum());		// 추후에 계수 정렬을 구현해보는 것도 좋을 것 같다. 지금은 그냥 std::sort로 정렬하였음.
-		if (std::ranges::includes(p.getP(), p.getP() + p.getNum(), "0123456789", "0123456789" + 10)) {
-			count++;
+		std::sort(p.getP(), p.getP() + p.getNum());
+		});
+
+	size_t count = std::count_if(players.begin(), players.end(), [](const Player& p) {
+		return std::ranges::includes(p.getP(), p.getP() + p.getNum(),
+									 "0123456789", "0123456789" + 10);
+		});
+	timerEnd();
+	*/
+
+	timerStart("계수정렬 + includes");
+	std::for_each(std::execution::par, players.begin(), players.end(), [](Player& p) {
+		// counting sort
+		std::array<int, 256> cnt{};
+		char* data = p.getP();
+		size_t num = p.getNum();
+
+		for (size_t i = 0; i < num; ++i) {
+			cnt[(unsigned char)data[i]]++;
+		}
+
+		char* out = data;
+		for (int i = 0; i < 256; ++i) {
+			for (int j = 0; j < cnt[i]; ++j) {
+				*out++ = (char)i;
+			}
 		}
 		});
-	std::println("'0'부터 '9'까지 모든 숫자가 있는 Player 수: {}개", count.load());
-	*/
+
+	size_t count = std::count_if(players.begin(), players.end(), [](const Player& p) {
+		return std::ranges::includes(p.getP(), p.getP() + p.getNum(),
+									 "0123456789", "0123456789" + 10);
+		});
+
+	timerEnd();
+
+	std::cout << "'0'부터 '9'까지 모든 숫자가 있는 Player 수: " << count << "개\n";
+
 
 	// [문제5] [LOOP] id를 입력받아 존재하는 id라면 다음 내용을 한 번에 화면 출력하라
 	// 프로그램은 5번을 무한히 반복할 수 있어야 한다.
-
-	// id 기준 인덱스 정렬
-	std::iota(IdIndex.begin(), IdIndex.end(), 0);
-	std::sort(std::execution::par, IdIndex.begin(), IdIndex.end(), [](size_t a, size_t b) {
-		return players[a].getId() < players[b].getId();
-		});
 
 	// name 기준 인덱스 정렬
 	std::iota(NameIndex.begin(), NameIndex.end(), 0);
@@ -162,18 +258,18 @@ int main() {
 
 	size_t inputId;
 	while (true) {
-		std::println("[문제5] id 입력받아 해당 id 포함 앞과 뒤 Player 정보 출력하기");
+		std::cout << "[문제5] id 입력받아 해당 id 포함 앞과 뒤 Player 정보 출력하기\n";
 		std::cout << "id를 입력하세요 (종료 - EOF):";
 		std::cin >> inputId;
 
 		if (std::cin.eof()) {
-			std::println("프로그램을 종료합니다.");
+			std::cout << "프로그램을 종료합니다.\n";
 			break;
 		}
 		else if (std::cin.fail()) {
 			std::cin.clear();
 			std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-			std::println("유효하지 않은 입력.");
+			std::cout << "유효하지 않은 입력.\n";
 			continue;
 		}
 
@@ -182,13 +278,13 @@ int main() {
 		// 모든 Player가 id 기준 오름차순으로 정렬되어 있는 상태에서
 		// 해당 id 포함 앞과 뒤 Player의 정보를 출력한다.
 		// id가 같은 Player가 둘 이상이면 이들의 정보를 모두 출력하여야 한다.
-		std::println("=== ID가 같은 플레이어들 출력 ===");
+		std::cout << "=== ID가 같은 플레이어들 출력 ===\n";
 
 		auto IdFirst = std::lower_bound(IdIndex.begin(), IdIndex.end(), inputId,
 			[](size_t i, size_t target) { return players[i].getId() < target; });
 
 		if (IdFirst == IdIndex.end() || players[*IdFirst].getId() != inputId) {
-			std::println("해당 ID를 가진 플레이어가 없습니다.");
+			std::cout << "해당 ID를 가진 플레이어가 없습니다.\n";
 			continue;
 		}
 
@@ -214,7 +310,7 @@ int main() {
 		// Player가 name 기준 오름차순으로 정렬되어 있는 상태에서
 		// 해당 name 포함 앞과 뒤 Player의 정보를 출력한다.
 		// 같은 name이 여럿일 경우 바로 앞뒤의 Player 정보만 출력하면 된다.
-		std::println("=== Name이 같은 플레이어들 출력 ===");
+		std::cout << "=== Name이 같은 플레이어들 출력 ===\n";
 
 		auto NameFirst = std::lower_bound(NameIndex.begin(), NameIndex.end(), players[*IdFirst].getName(),
 			[](size_t i, const std::string& target) { return players[i].getName() < target; });
@@ -244,7 +340,7 @@ int main() {
 		// Player가 score 기준 오름차순으로 정렬되어 있는 상태에서
 		// 해당 score 포함 앞과 뒤 Player의 정보를 출력한다.
 		// 같은 score가 여럿일 경우 바로 앞뒤 한명의 Player 정보만 출력하면 된다.
-		std::println("=== Score가 같은 플레이어들 출력 ===");
+		std::cout << "=== Score가 같은 플레이어들 출력 ===\n";
 
 		auto ScoreFirst = std::lower_bound(ScoreIndex.begin(), ScoreIndex.end(), players[*IdFirst].getScore(),
 			[](size_t i, int target) { return players[i].getScore() < target; });
@@ -269,19 +365,19 @@ int main() {
 			players[*ScoreLast].PrintByScore();
 		}
 
-		std::println("\n--------------------------------------------------\n");
+		std::cout << "\n--------------------------------------------------\n\n";
 	}
 }
 
 void timerStart(std::string s) {
-	std::println("--------------------------------------------------");
-	std::println("문제 {} 시작\n", s);
+	std::cout << "--------------------------------------------------\n";
+	std::cout << "문제 " << s << " 시작\n\n";
 	startTime = std::chrono::high_resolution_clock::now();
 }
 
 void timerEnd() {
 	auto endTime = std::chrono::high_resolution_clock::now();
 	auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
-	std::println("경과 시간: {}ms\n", duration.count());
-	std::println("--------------------------------------------------");
+	std::cout << "경과 시간: " << duration.count() << "ms\n\n";
+	std::cout << "--------------------------------------------------\n";
 }
