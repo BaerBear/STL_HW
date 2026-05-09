@@ -3,12 +3,13 @@
 #include <string>
 #include <memory>
 
-enum class SortKey { id, name, score };
 
 class Player {
 public:
 	Player() = default;
 	~Player() = default;
+
+	enum class SortKey { id, name, score };
 
 	void read(std::istream& is);
 
@@ -24,7 +25,6 @@ public:
 	friend std::ostream& operator<<(std::ostream& os, const Player& pl);
 
 private:
-
 	std::string name;			// 이름, 길이[3, 15], ['a', 'z']로만 구성
 	int score{};					// 점수, 정규분포
 	size_t id{};					// 아이디, 겹치는 아이디 있을 수 있음

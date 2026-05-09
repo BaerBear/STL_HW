@@ -27,7 +27,7 @@ std::array<Player, 300'0000> players;
 int main() {
 	std::ifstream in("2026 STL 과제 파일 - 2022180011", std::ios::binary);
 	if (not in) {
-		std::cout << "파일을 열 수 없습니다." << std::endl;
+		std::cout << "파일을 열 수 없습니다.\n";
 		return 1;
 	}
 
@@ -95,24 +95,24 @@ int main() {
 
 	/*
 	// id 기준 인덱스 정렬
-	std::iota(IdIndex.begin(), IdIndex.end(), 0);
-	std::sort(std::execution::par, IdIndex.begin(), IdIndex.end(), [](size_t a, size_t b) {
+	std::iota(idIndex.begin(), idIndex.end(), 0);
+	std::sort(std::execution::par, idIndex.begin(), idIndex.end(), [](size_t a, size_t b) {
 		return players[a].getId() < players[b].getId();
 		});
 
 	std::ofstream out("같은아이디.txt");
 	size_t sameIdCount = 0;
 
-	for (size_t i = 0; i < IdIndex.size(); ) {
+	for (size_t i = 0; i < idIndex.size(); ) {
 		size_t j = i + 1;
-		while (j < IdIndex.size() &&
-			players[IdIndex[j]].getId() == players[IdIndex[i]].getId()) {
+		while (j < idIndex.size() &&
+			players[idIndex[j]].getId() == players[idIndex[i]].getId()) {
 			++j;
 		}
 
 		if (j - i >= 2) {
 			for (size_t k = i; k < j; ++k) {
-				const Player& p = players[IdIndex[k]];
+				const Player& p = players[idIndex[k]];
 				out << "이름: " << p.getName() << ", 아이디: " << p.getId() << '\n';
 				sameIdCount++;
 			}
@@ -174,22 +174,22 @@ int main() {
 	// [문제5] [LOOP] id를 입력받아 존재하는 id라면 다음 내용을 한 번에 화면 출력하라
 	// 프로그램은 5번을 무한히 반복할 수 있어야 한다.
 
-	std::vector<const Player*> IdIndex;
-	IdIndex.reserve(players.size());
+	std::vector<const Player*> idIndex;
+	idIndex.reserve(players.size());
 	for (const Player& p : players) {
-		IdIndex.push_back(&p);
+		idIndex.push_back(&p);
 	}
 
-	std::vector<const Player*> NameIndex = IdIndex;
-	std::vector<const Player*> ScoreIndex = IdIndex;
+	std::vector<const Player*> nameIndex = idIndex;
+	std::vector<const Player*> scoreIndex = idIndex;
 
-	std::sort(std::execution::par, IdIndex.begin(), IdIndex.end(),
+	std::sort(std::execution::par, idIndex.begin(), idIndex.end(),
 		[](const Player* a, const Player* b) { return a->getId() < b->getId(); });
 
-	std::sort(std::execution::par, NameIndex.begin(), NameIndex.end(),
+	std::sort(std::execution::par, nameIndex.begin(), nameIndex.end(),
 		[](const Player* a, const Player* b) { return a->getName() < b->getName(); });
 
-	std::sort(std::execution::par, ScoreIndex.begin(), ScoreIndex.end(),
+	std::sort(std::execution::par, scoreIndex.begin(), scoreIndex.end(),
 		[](const Player* a, const Player* b) { return a->getScore() < b->getScore(); });
 
 	size_t inputId;
@@ -219,28 +219,28 @@ int main() {
 		// ============================================================
 		std::cout << "=== ID가 같은 플레이어들 출력 ===\n";
 
-		auto IdFirst = std::lower_bound(IdIndex.begin(), IdIndex.end(), inputId,
+		auto idFirst = std::lower_bound(idIndex.begin(), idIndex.end(), inputId,
 			[](const Player* p, size_t target) { return p->getId() < target; });
 
-		if (IdFirst == IdIndex.end() || (*IdFirst)->getId() != inputId) {
+		if (idFirst == idIndex.end() || (*idFirst)->getId() != inputId) {
 			std::cout << "해당 ID를 가진 플레이어가 없습니다.\n\n";
 			continue;
 		}
 
-		auto IdLast = std::upper_bound(IdIndex.begin(), IdIndex.end(), inputId,
+		auto idLast = std::upper_bound(idIndex.begin(), idIndex.end(), inputId,
 			[](size_t target, const Player* p) { return target < p->getId(); });
 
-		if (IdFirst != IdIndex.begin()) {
+		if (idFirst != idIndex.begin()) {
 			std::cout << "[prev] ";
-			(*(IdFirst - 1))->Print(SortKey::id);
+			(*(idFirst - 1))->Print(SortKey::id);
 		}
-		for (auto it = IdFirst; it != IdLast; ++it) {
+		for (auto it = idFirst; it != idLast; ++it) {
 			std::cout << "[해당] ";
 			(*it)->Print(SortKey::id);
 		}
-		if (IdLast != IdIndex.end()) {
+		if (idLast != idIndex.end()) {
 			std::cout << "[next] ";
-			(*IdLast)->Print(SortKey::id);
+			(*idLast)->Print(SortKey::id);
 		}
 		std::cout << '\n';
 
@@ -251,27 +251,27 @@ int main() {
 		// ============================================================
 		std::cout << "=== Name이 같은 플레이어들 출력 ===\n";
 
-		const std::string& targetName = (*IdFirst)->getName();
+		const std::string& targetName = (*idFirst)->getName();
 
-		auto NameFirst = std::lower_bound(NameIndex.begin(), NameIndex.end(), targetName,
+		auto nameFirst = std::lower_bound(nameIndex.begin(), nameIndex.end(), targetName,
 			[](const Player* p, const std::string& target) { return p->getName() < target; });
 
-		auto NameLast = std::upper_bound(NameIndex.begin(), NameIndex.end(), targetName,
+		auto nameLast = std::upper_bound(nameIndex.begin(), nameIndex.end(), targetName,
 			[](const std::string& target, const Player* p) { return target < p->getName(); });
 
-		if (NameFirst != NameIndex.begin()) {
+		if (nameFirst != nameIndex.begin()) {
 			std::cout << "[prev] ";
-			(*(NameFirst - 1))->Print(SortKey::name);
+			(*(nameFirst - 1))->Print(SortKey::name);
 		}
-		for (auto it = NameFirst; it != NameLast; ++it) {
+		for (auto it = nameFirst; it != nameLast; ++it) {
 			if ((*it)->getId() == inputId) {
 				std::cout << "[해당] ";
 			}
 			(*it)->Print(SortKey::name);
 		}
-		if (NameLast != NameIndex.end()) {
+		if (nameLast != nameIndex.end()) {
 			std::cout << "[next] ";
-			(*NameLast)->Print(SortKey::name);
+			(*nameLast)->Print(SortKey::name);
 		}
 		std::cout << '\n';
 
@@ -282,27 +282,27 @@ int main() {
 		// ============================================================
 		std::cout << "=== Score가 같은 플레이어들 출력 ===\n";
 
-		int targetScore = (*IdFirst)->getScore();
+		int targetScore = (*idFirst)->getScore();
 
-		auto ScoreFirst = std::lower_bound(ScoreIndex.begin(), ScoreIndex.end(), targetScore,
+		auto scoreFirst = std::lower_bound(scoreIndex.begin(), scoreIndex.end(), targetScore,
 			[](const Player* p, int target) { return p->getScore() < target; });
 
-		auto ScoreLast = std::upper_bound(ScoreIndex.begin(), ScoreIndex.end(), targetScore,
+		auto scoreLast = std::upper_bound(scoreIndex.begin(), scoreIndex.end(), targetScore,
 			[](int target, const Player* p) { return target < p->getScore(); });
 
-		if (ScoreFirst != ScoreIndex.begin()) {
+		if (scoreFirst != scoreIndex.begin()) {
 			std::cout << "[prev] ";
-			(*(ScoreFirst - 1))->Print(SortKey::score);
+			(*(scoreFirst - 1))->Print(SortKey::score);
 		}
-		for (auto it = ScoreFirst; it != ScoreLast; ++it) {
+		for (auto it = scoreFirst; it != scoreLast; ++it) {
 			if ((*it)->getId() == inputId) {
 				std::cout << "[해당] ";
 			}
 			(*it)->Print(SortKey::score);
 		}
-		if (ScoreLast != ScoreIndex.end()) {
+		if (scoreLast != scoreIndex.end()) {
 			std::cout << "[next] ";
-			(*ScoreLast)->Print(SortKey::score);
+			(*scoreLast)->Print(SortKey::score);
 		}
 
 		std::cout << "\n--------------------------------------------------\n\n";
