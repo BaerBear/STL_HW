@@ -14,12 +14,12 @@ public:
 
 	void Print(SortKey key) const;
 
-	const std::string& getName() const { return name; }
-	int getScore() const { return score; }
-	size_t getId() const { return id; }
-	size_t getNum() const { return num; }
-	const char* getP() const { return p.get(); }
-	char* getP() { return p.get(); }
+	const std::string& getName() const;
+	int getScore() const;
+	size_t getId() const;
+	size_t getNum() const;
+	const char* getP() const;
+	char* getP();
 
 	friend std::ostream& operator<<(std::ostream& os, const Player& pl);
 

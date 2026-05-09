@@ -9,7 +9,6 @@
 #include <algorithm>
 #include <execution>
 #include <unordered_map>
-#include <map>
 #include "Player.h"
 
 // 2026 STL 과제 파일 - 2022180011
@@ -42,7 +41,6 @@ int main() {
 	std::cout << players.back();
 	std::cout << "--------------------------------------------------\n";
 
-
 	// [문제2] 점수가 가장 큰 Player를 찾아 화면에 출력하라. (동점 모두 출력)
 	// Player의 평균 점수를 계산하여 화면에 출력하라.
 	// - 어떻게 찾고 계산하였는지 보고서에 설명하라
@@ -65,19 +63,6 @@ int main() {
 			return acc + p.getScore();
 		});
 
-	/*
-	long long sum = 0;
-	int maxScore = MaxScore->getScore();
-
-	for (const Player& p : players) {
-		sum += p.getScore();
-
-		if (p.getScore() == maxScore) {
-			std::cout << p;
-		}
-	}
-	*/
-
 	std::cout << "[문제2] 평균 점수: " << sum / players.size() << '\n';
 	std::cout << "--------------------------------------------------\n";
 
@@ -87,25 +72,6 @@ int main() {
 	// - 어떻게 같은 id를 찾았는지 보고서에 설명하라.
 
 	std::cout << "[문제3] id가 같은 Player 기록 후 몇 개인지 출력하기\n";
-
-	/*
-	std::map<size_t, std::vector<Player*>> idMap;
-	for (Player& p : players) {
-		idMap[p.getId()].push_back(&p);
-	}
-
-	std::cout << "id가 같은 Player 객체 찾기 완료\n";
-	std::ofstream out("같은아이디.txt");
-	size_t sameIdCount = 0;
-	for (const auto& [id, vec] : idMap | std::views::filter([](const auto& pair) {
-		return pair.second.size() > 1;
-		})) {
-		for (const Player* p : vec) {
-			out << "이름: " << p->getName() << ", 아이디: " << p->getId() << '\n';
-			sameIdCount++;
-		}
-	}
-	*/
 
 	std::unordered_map<size_t, std::vector<Player*>> idMap;
 	idMap.reserve(players.size());
@@ -128,7 +94,6 @@ int main() {
 	}
 
 	/*
-
 	// id 기준 인덱스 정렬
 	std::iota(IdIndex.begin(), IdIndex.end(), 0);
 	std::sort(std::execution::par, IdIndex.begin(), IdIndex.end(), [](size_t a, size_t b) {

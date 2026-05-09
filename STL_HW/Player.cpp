@@ -9,7 +9,8 @@ void Player::read(std::istream& is)
 	is.read(p.get(), num);
 }
 
-void Player::Print(SortKey key) const {
+void Player::Print(SortKey key) const 
+{
 	switch (key) {
 	case SortKey::id:
 		std::println("아이디 - {}, 이름: {}, 점수: {}, 자원수: {}, 글자(최대 10자): {}",
@@ -24,6 +25,36 @@ void Player::Print(SortKey key) const {
 			score, name, id, num, std::string(p.get(), std::min<size_t>(10, num)));
 		break;
 	}
+}
+
+const std::string& Player::getName() const 
+{ 
+	return name; 
+}
+
+int Player::getScore() const 
+{
+	return score; 
+}
+
+size_t Player::getId() const 
+{ 
+	return id; 
+}
+
+size_t Player::getNum() const 
+{ 
+	return num; 
+}
+
+const char* Player::getP() const 
+{ 
+	return p.get(); 
+}
+
+char* Player::getP() 
+{ 
+	return p.get(); 
 }
 
 std::ostream& operator<<(std::ostream& os, const Player& pl)
